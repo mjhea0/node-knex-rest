@@ -48,10 +48,10 @@ module.exports = {
       database: 'node_knex_rest'
     },
     migrations: {
-      directory: __dirname + './src/server/db/migrations'
+      directory: __dirname + '/src/server/db/migrations'
     },
     seeds: {
-      directory: __dirname + './src/server/db/migrations/seeds/dev'
+      directory: __dirname + '/src/server/db/seeds/dev'
     }
   }
 
@@ -69,7 +69,7 @@ module.exports = require('knex')(config);
 
 ## Migrations
 
-With the command line tool, run:
+Create the database in psql and then with the command line tool, run:
 
 ```sh
 $ knex migrate:make init
@@ -91,7 +91,7 @@ exports.down = function(knex, Promise) {
 };
 ```
 
-Create the database in psql, and then run the migration:
+Run the migration:
 
 ```sh
 $ knex migrate:latest
@@ -185,7 +185,6 @@ Test:
 $ curl -X PUT --data "column=firstName&value=Bat" \
 http://127.0.0.1:3000/api/blobs/2
 ```
-```
 
 ### DELETE
 
@@ -204,8 +203,19 @@ $ curl -X DELETE http://127.0.0.1:3000/api/blobs/1
 
 ## Deployment
 
+Update knex config file, *knexfile.js*:
 
- production: {
-    client: 'pg',
-    connection: process.env.DATABASE_URL
+```javascript
+production: {
+  client: 'postgresql',
+  connection: {
+    database: process.env.DATABASE_URL
+  },
+  migrations: {
+    directory: __dirname + '/src/server/db/migrations'
+  },
+  seeds: {
+    directory: __dirname + '/src/server/db/seeds/production'
   }
+}
+```
