@@ -12,7 +12,6 @@ module.exports = {
       directory: __dirname + '/src/server/db/seeds/dev'
     }
   },
-
   production: {
     client: 'postgresql',
     connection: {
