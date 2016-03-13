@@ -219,3 +219,8 @@ production: {
   }
 }
 ```
+
+## Stretch
+
+- validators
+- foreign keys (migrations, seeds)
