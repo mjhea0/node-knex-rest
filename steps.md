@@ -13,21 +13,33 @@
 Create a new project and install the required dependencies:
 
   ```sh
-  $ mkdir node-knex-rest
-  $ cd mkdir node-knex-rest
+  $ mkdir node-knex-todo
+  $ cd mkdir node-knex-todo
   $ yo galvanize-express
   $ npm install
   ```
 
-CRUD
+### CRUD
+
+Users
 
 |        URL     | HTTP Verb |         Action       |
 |----------------|-----------|----------------------|
-| /api/blobs     | GET       | Return ALL blobs     |
-| /api/blobs/:id | GET       | Return a SINGLE blob |
-| /api/blobs     | POST      | Add a blob           |
-| /api/blobs/:id | PUT       | Update a blob        |
-| /api/blobs/:id | DELETE    | Delete a blob        |
+| /api/users     | GET       | Return ALL users     |
+| /api/users/:id | GET       | Return a SINGLE user |
+| /api/users     | POST      | Add a user           |
+| /api/users/:id | PUT       | Update a user        |
+| /api/users/:id | DELETE    | Delete a user        |
+
+Todos
+
+|        URL     | HTTP Verb |         Action       |
+|----------------|-----------|----------------------|
+| /api/todos     | GET       | Return ALL todos     |
+| /api/todos/:id | GET       | Return a SINGLE todo |
+| /api/todos     | POST      | Add a todo           |
+| /api/todos/:id | PUT       | Update a todo        |
+| /api/todos/:id | DELETE    | Delete a todo        |
 
 ## Knex Setup
 
@@ -44,9 +56,7 @@ module.exports = {
 
   development: {
     client: 'postgresql',
-    connection: {
-      database: 'node_knex_rest'
-    },
+    connection: 'localhost:5432/node_knex_rest'
     migrations: {
       directory: __dirname + '/src/server/db/migrations'
     },
@@ -77,17 +87,33 @@ $ knex migrate:make init
 
 Then in the newly created migration file add:
 
-```
+```javascript
 exports.up = function(knex, Promise) {
-  return knex.schema.createTable('blobs', function(table) {
-    table.increments();
-    table.string('firstName');
-    table.string('lastName');
-  });
+
+  return Promise.all([
+
+    knex.schema.createTable('users', function(table) {
+      table.increments('uid').primary();
+      table.string('email').notNullable().unique();
+      table.string('firstName');
+      table.string('lastName');
+    }),
+
+    knex.schema.createTable('posts', function(table){
+      table.increments('id').primary();
+      table.string('title');
+      table.string('body');
+      table.integer('author_id')
+         .references('uid')
+         .inTable('users');
+      table.dateTime('postDate');
+    }),
+  ])
 };
 
 exports.down = function(knex, Promise) {
-  return knex.schema.dropTable('blobs');
+  return knex.schema.dropTable('users');
+  return knex.schema.dropTable('posts');
 };
 ```
 
@@ -99,10 +125,12 @@ $ knex migrate:latest
 
 ## Seeds
 
+### Users
+
 Create a new seed file:
 
 ```sh
-$ knex seed:make init
+$ knex seed:make users
 ```
 
 Update the file:
@@ -111,10 +139,11 @@ Update the file:
 exports.seed = function(knex, Promise) {
   return Promise.join(
     // Deletes ALL existing entries
-    knex('blobs').del(),
+    knex('users').del(),
 
     // Inserts seed entries
-    knex('blobs').insert({
+    knex('users').insert({
+      email: 'michael@mherman.org'
       firstName: 'Michael',
       lastName: 'Herman'
     })
@@ -128,37 +157,39 @@ Run the seed:
 $ knex seed:run
 ```
 
+### Todos
 
+ADD SOMETHING HERE
 
 ## Routes
 
-### GET all blobs
+### GET all users
 
 ```javascript
-// return ALL blobs
-router.get('/api/blobs', function(req, res, next) {
+// return ALL users
+router.get('/api/users', function(req, res, next) {
 
 });
 ```
 
-Test: [http://localhost:3000/api/blobs](http://localhost:3000/api/blobs)
+Test: [http://localhost:3000/api/users](http://localhost:3000/api/users)
 
-### GET Single blob
+### GET Single user
 
 ```javascript
-// return single blob
-router.get('/api/blob/:id', function(req, res, next) {
+// return single user
+router.get('/api/users/:id', function(req, res, next) {
 
 });
 ```
 
-Test: [http://localhost:3000/api/blobs/1](http://localhost:3000/api/blobs/1)
+Test: [http://localhost:3000/api/users/1](http://localhost:3000/api/users/1)
 
 ### POST
 
 ```javascript
-// add blob
-router.post('/api/blobs', function(req, res, next) {
+// add user
+router.post('/api/users', function(req, res, next) {
 
 });
 ```
@@ -167,14 +198,14 @@ Test:
 
 ```sh
 curl --data "firstName=Super&lastName=Man" \
-http://127.0.0.1:3000/api/blobs
+http://127.0.0.1:3000/api/users
 ```
 
 ### PUT
 
 ```javascript
-// update blob
-router.put('/api/blob/:id', function(req, res, next) {
+// update user
+router.put('/api/users/:id', function(req, res, next) {
 
 });
 ```
@@ -183,14 +214,14 @@ Test:
 
 ```sh
 $ curl -X PUT --data "column=firstName&value=Bat" \
-http://127.0.0.1:3000/api/blobs/2
+http://127.0.0.1:3000/api/users/2
 ```
 
 ### DELETE
 
 ```javascript
-// delete blob
-router.put('/api/blob/:id', function(req, res, next) {
+// delete user
+router.put('/api/users/:id', function(req, res, next) {
 
 });
 ```
@@ -198,7 +229,76 @@ router.put('/api/blob/:id', function(req, res, next) {
 Test:
 
 ```sh
-$ curl -X DELETE http://127.0.0.1:3000/api/blobs/1
+$ curl -X DELETE http://127.0.0.1:3000/api/users/1
+```
+
+### GET all todos
+
+```javascript
+// return ALL todos
+router.get('/api/todos', function(req, res, next) {
+
+});
+```
+
+Test: [http://localhost:3000/api/todos](http://localhost:3000/api/todos)
+
+### GET Single todo
+
+```javascript
+// return single todo
+router.get('/api/todos/:id', function(req, res, next) {
+
+});
+```
+
+Test: [http://localhost:3000/api/todos/1](http://localhost:3000/api/todos/1)
+
+### POST
+
+```javascript
+// add todo
+router.post('/api/todos', function(req, res, next) {
+
+});
+```
+
+Test:
+
+```sh
+curl --data "firstName=Super&lastName=Man" \
+http://127.0.0.1:3000/api/todos
+```
+
+### PUT
+
+```javascript
+// update todo
+router.put('/api/todos/:id', function(req, res, next) {
+
+});
+```
+
+Test:
+
+```sh
+$ curl -X PUT --data "column=firstName&value=Bat" \
+http://127.0.0.1:3000/api/todos/2
+```
+
+### DELETE
+
+```javascript
+// delete todo
+router.put('/api/todos/:id', function(req, res, next) {
+
+});
+```
+
+Test:
+
+```sh
+$ curl -X DELETE http://127.0.0.1:3000/api/todos/1
 ```
 
 ## Deployment
@@ -219,8 +319,3 @@ production: {
   }
 }
 ```
-
-## Stretch
-
-- validators
-- foreign keys (migrations, seeds)
